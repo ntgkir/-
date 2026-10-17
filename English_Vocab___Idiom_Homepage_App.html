@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>英単語・熟語 Mastery Hub</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Glassmorphism Styling */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+    }
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.88);
+      border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-top: 1px solid rgba(229, 231, 235, 0.8);
+    }
+    .dark .glass-nav {
+      background: rgba(15, 23, 42, 0.94);
+      border-top: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    /* 3D Flashcard Animation */
+    .perspective {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen pb-24 selection:bg-brand-500 selection:text-white">
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="app" class="max-w-md mx-auto relative min-h-screen flex flex-col">
+
+    <!-- TOP HOMEPAGE HEADER BAR -->
+    <header class="sticky top-0 z-30 glass-card px-4 py-3 rounded-b-2xl shadow-sm flex justify-between items-center mt-0 border-t-0">
+      <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('home')">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <i data-lucide="book-open-check" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-bold leading-none bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-500 dark:from-brand-500 dark:to-indigo-300">
+            Vocab Hub
+          </h1>
+          <span class="text-[10px] text-slate-400 font-medium">Smart AI Learning Portal</span>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-1.5">
+        <!-- AI Key Settings Button -->
+        <button onclick="openApiKeyModal()" class="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300" title="APIキー設定">
+          <i data-lucide="key" class="w-3.5 h-3.5"></i>
+        </button>
+
+        <!-- Account Selector Button -->
+        <button onclick="openProfileModal()" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700">
+          <div id="accountLockIndicator" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span id="currentAccountLabel" class="text-xs font-semibold max-w-[80px] truncate">Default</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN VIEWS CONTAINER -->
+    <main class="flex-1 px-4 pt-4 pb-6">
+
+      <!-- VIEW 1: HOMEPAGE DASHBOARD -->
+      <section id="view-home" class="tab-view space-y-5">
+        <!-- Daily Welcome Banner -->
+        <div class="glass-card p-5 rounded-3xl relative overflow-hidden bg-gradient-to-br from-brand-600/10 via-indigo-500/5 to-transparent border border-brand-500/20">
+          <div class="relative z-10">
+            <span class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400">学習ポータル</span>
+            <h2 class="text-xl font-extrabold mt-0.5 text-slate-900 dark:text-white" id="welcomeGreeting">おかえりなさい！</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">AIアシストとシャッフル出題で着実に語彙力をアップ！</p>
+            
+            <div class="grid grid-cols-3 gap-3 mt-4">
+              <div class="bg-white/80 dark:bg-slate-900/80 p-3 rounded-2xl text-center border border-slate-100 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] text-slate-400 block font-medium">全登録数</span>
+                <span id="homeStatTotal" class="text-lg font-bold text-slate-800 dark:text-slate-100">0</span>
+              </div>
+              <div class="bg-white/80 dark:bg-slate-900/80 p-3 rounded-2xl text-center border border-slate-100 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] text-rose-500 block font-medium">不正解・要復習</span>
+                <span id="homeStatReview" class="text-lg font-bold text-rose-600 dark:text-rose-400">0</span>
+              </div>
+              <div class="bg-white/80 dark:bg-slate-900/80 p-3 rounded-2xl text-center border border-slate-100 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] text-emerald-500 block font-medium">マスター済み</span>
+                <span id="homeStatMastered" class="text-lg font-bold text-emerald-600 dark:text-emerald-400">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Homepage Quick Launch Features -->
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2.5 px-1">クイック学習メニュー</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="switchTab('study'); startQuiz();" class="glass-card p-4 rounded-2xl text-left hover:border-brand-500/50 transition flex flex-col justify-between group">
+              <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+                <i data-lucide="zap" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">シャッフルクイズ</h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">問題数を指定して速習</p>
+              </div>
+            </button>
+
+            <button onclick="switchTab('study'); setStudySubMode('timer');" class="glass-card p-4 rounded-2xl text-left hover:border-brand-500/50 transition flex flex-col justify-between group">
+              <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3 group-hover:scale-105 transition">
+                <i data-lucide="timer" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">ポモドーロタイマー</h4>
+                <p class="text-[11px] text-slate-400 mt-0.5">学習時間を自動記録</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Priority Items Preview List -->
+        <div>
+          <div class="flex justify-between items-center mb-2.5 px-1">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">要復習ターゲット</h3>
+            <button onclick="switchTab('words')" class="text-xs text-brand-600 dark:text-brand-400 font-medium hover:underline">一覧を見る</button>
+          </div>
+          <div id="homePriorityList" class="space-y-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: QUIZ & STUDY TIMER -->
+      <section id="view-study" class="tab-view hidden space-y-4">
+        <!-- Sub View Toggle Slider -->
+        <div class="flex bg-slate-200/60 dark:bg-slate-800/60 p-1 rounded-2xl text-xs font-semibold">
+          <button id="btnSubQuiz" onclick="setStudySubMode('quiz')" class="flex-1 py-2 text-center rounded-xl bg-white dark:bg-slate-900 shadow-sm transition">
+            <i data-lucide="brain-circuit" class="w-3.5 h-3.5 inline mr-1"></i>カード学習
+          </button>
+          <button id="btnSubTimer" onclick="setStudySubMode('timer')" class="flex-1 py-2 text-center rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition">
+            <i data-lucide="clock" class="w-3.5 h-3.5 inline mr-1"></i>集中タイマー
+          </button>
+        </div>
+
+        <!-- SUB VIEW 1: FLASHCARD QUIZ ENGINE -->
+        <div id="subview-quiz" class="space-y-4">
+          <div class="glass-card p-3.5 rounded-2xl space-y-3 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400 font-bold">出題ステータス:</span>
+              <select id="quizStatusFilter" onchange="startQuiz()" class="bg-slate-100 dark:bg-slate-800 rounded-lg px-2.5 py-1 outline-none border border-slate-200 dark:border-slate-700 font-semibold">
+                <option value="all">すべて出題</option>
+                <option value="incorrect">🔴 不正解・間違いのみ</option>
+                <option value="unsure">🟡 微妙・わかってないのみ</option>
+                <option value="correct">🟢 正解・マスターのみ</option>
+                <option value="needs_review">⚠️ 不正解 ＋ 微妙のみ</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-slate-400 font-bold">出題数:</span>
+                <select id="quizCountFilter" onchange="startQuiz()" class="bg-slate-100 dark:bg-slate-800 rounded-lg px-2 py-1 outline-none border border-slate-200 dark:border-slate-700 font-semibold">
+                  <option value="5">5問</option>
+                  <option value="10" selected>10問</option>
+                  <option value="20">20問</option>
+                  <option value="999">全問</option>
+                </select>
+              </div>
+
+              <div class="flex items-center space-x-1.5">
+                <span class="text-slate-400 font-bold">種別:</span>
+                <select id="quizTypeFilter" onchange="startQuiz()" class="bg-slate-100 dark:bg-slate-800 rounded-lg px-2 py-1 outline-none border border-slate-200 dark:border-slate-700 font-semibold">
+                  <option value="all">単語・熟語</option>
+                  <option value="word">単語のみ</option>
+                  <option value="idiom">熟語のみ</option>
+                </select>
+              </div>
+            </div>
+
+            <button onclick="startQuiz()" class="w-full py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-brand-600 hover:text-white transition font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center space-x-1">
+              <i data-lucide="shuffle" class="w-3.5 h-3.5"></i>
+              <span>条件を適用して再シャッフル</span>
+            </button>
+          </div>
+
+          <div id="quizContainer" class="relative">
+            <!-- Dynamic Flashcard render -->
+          </div>
+        </div>
+
+        <!-- SUB VIEW 2: FOCUS STUDY TIMER -->
+        <div id="subview-timer" class="hidden space-y-5 text-center">
+          <div class="glass-card p-6 rounded-3xl space-y-6">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">集中ポモドーロタイマー</h3>
+            
+            <div class="relative w-48 h-48 mx-auto flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="6" class="text-slate-200 dark:text-slate-800" fill="transparent" />
+                <circle id="timerProgressCircle" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="6" class="text-brand-600 dark:text-brand-500 transition-all duration-500" fill="transparent" stroke-dasharray="263.89" stroke-dashoffset="0" stroke-linecap="round" />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span id="timerDisplay" class="text-4xl font-extrabold tracking-tight">25:00</span>
+                <span id="timerStateLabel" class="text-[11px] text-slate-400 font-medium mt-1">Ready</span>
+              </div>
+            </div>
+
+            <div class="flex justify-center flex-wrap gap-2">
+              <button onclick="setTimerPreset(5)" class="timer-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition">5分</button>
+              <button onclick="setTimerPreset(10)" class="timer-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition">10分</button>
+              <button onclick="setTimerPreset(15)" class="timer-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition">15分</button>
+              <button onclick="setTimerPreset(25)" class="timer-preset-btn active px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-600 text-white transition">25分</button>
+              <button onclick="setTimerPreset(30)" class="timer-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition">30分</button>
+              <button onclick="setTimerPreset(60)" class="timer-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition">60分</button>
+            </div>
+
+            <div class="flex justify-center space-x-3 pt-2">
+              <button id="btnStartTimer" onclick="toggleTimer()" class="w-28 py-3 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition active:scale-95 flex items-center justify-center space-x-1.5">
+                <i data-lucide="play" class="w-4 h-4"></i>
+                <span id="btnStartTimerText">スタート</span>
+              </button>
+              <button onclick="resetTimer()" class="px-4 py-3 rounded-2xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-sm transition active:scale-95">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: CALENDAR & LOGS -->
+      <section id="view-calendar" class="tab-view hidden space-y-4">
+        <div class="glass-card p-4 rounded-3xl flex justify-between items-center">
+          <div>
+            <span class="text-[11px] text-slate-400 font-medium block">今月の総学習時間</span>
+            <span id="calendarMonthlyTotal" class="text-2xl font-extrabold text-brand-600 dark:text-brand-400">0 分</span>
+          </div>
+          <div class="text-right">
+            <span class="text-[11px] text-slate-400 font-medium block">学習達成日数</span>
+            <span id="calendarActiveDays" class="text-xl font-bold text-slate-800 dark:text-slate-100">0 日</span>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center px-2">
+          <button onclick="changeMonth(-1)" class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+          <h3 id="calendarMonthTitle" class="text-base font-bold text-slate-800 dark:text-slate-100"></h3>
+          <button onclick="changeMonth(1)" class="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 transition">
+            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="glass-card p-4 rounded-3xl">
+          <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 mb-2">
+            <div class="text-rose-500">日</div>
+            <div>月</div>
+            <div>火</div>
+            <div>水</div>
+            <div>木</div>
+            <div>金</div>
+            <div class="text-indigo-500">土</div>
+          </div>
+          <div id="calendarDaysGrid" class="grid grid-cols-7 gap-1 text-center text-xs">
+            <!-- Calendar Grid -->
+          </div>
+        </div>
+
+        <div id="calendarDayDetail" class="glass-card p-4 rounded-2xl text-xs space-y-1 hidden">
+          <h4 id="selectedDayTitle" class="font-bold text-slate-700 dark:text-slate-300 mb-1"></h4>
+          <p id="selectedDayContent" class="text-slate-500 dark:text-slate-400"></p>
+        </div>
+      </section>
+
+      <!-- VIEW 4: VOCABULARY LIST MANAGEMENT -->
+      <section id="view-words" class="tab-view hidden space-y-4">
+        <button onclick="openWordModal()" class="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold text-sm shadow-md shadow-brand-500/20 hover:opacity-95 transition flex items-center justify-center space-x-2">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>新しい単語・熟語を追加</span>
+        </button>
+
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+          <input type="text" id="wordSearchInput" oninput="renderWordList()" placeholder="英単語・日本語の意味で検索..." class="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500 transition">
+        </div>
+
+        <div class="glass-card p-2.5 rounded-2xl space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-400 font-bold">ステータス絞り込み:</span>
+            <select id="listStatusFilter" onchange="renderWordList()" class="bg-slate-100 dark:bg-slate-800 rounded-lg px-2 py-1 border border-slate-200 dark:border-slate-700 font-semibold outline-none">
+              <option value="all">全ステータス表示</option>
+              <option value="incorrect">🔴 不正解・間違い</option>
+              <option value="unsure">🟡 微妙・わかってない</option>
+              <option value="correct">🟢 正解・マスター</option>
+            </select>
+          </div>
+
+          <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-2">
+            <div class="flex space-x-1.5">
+              <button onclick="setListTypeFilter('all')" id="filterBtnAll" class="px-2 py-1 rounded-lg bg-brand-600 text-white font-semibold transition">すべて</button>
+              <button onclick="setListTypeFilter('word')" id="filterBtnWord" class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 transition">単語</button>
+              <button onclick="setListTypeFilter('idiom')" id="filterBtnIdiom" class="px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 transition">熟語</button>
+            </div>
+            <select id="listSortSelect" onchange="renderWordList()" class="bg-transparent text-slate-500 text-xs font-semibold outline-none">
+              <option value="newest">登録が新しい順</option>
+              <option value="errors">ミスが多い順</option>
+              <option value="alphabet">アルファベット順</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="wordList" class="space-y-2.5">
+          <!-- Dynamic cards -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- BOTTOM HOMEPAGE NAVIGATION NAVBAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto glass-nav px-3 py-2 rounded-t-2xl flex justify-around items-center">
+      <button onclick="switchTab('home')" id="nav-home" class="nav-btn flex flex-col items-center py-1 px-3 text-brand-600 dark:text-brand-400">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold mt-1">ポータル</span>
+      </button>
+      <button onclick="switchTab('study')" id="nav-study" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold mt-1">クイズ・学習</span>
+      </button>
+      <button onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i data-lucide="calendar" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold mt-1">カレンダー</span>
+      </button>
+      <button onclick="switchTab('words')" id="nav-words" class="nav-btn flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+        <i data-lucide="list-todo" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold mt-1">単語管理</span>
+      </button>
+    </nav>
+
+    <!-- MODAL 1: ADD/EDIT VOCABULARY WITH GEMINI AI -->
+    <div id="wordModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto no-scrollbar">
+        <div class="flex justify-between items-center">
+          <h3 id="modalTitle" class="text-base font-bold text-slate-900 dark:text-white">新しい単語・熟語を追加</h3>
+          <button onclick="closeWordModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <form id="wordForm" onsubmit="handleSaveWord(event)" class="space-y-3">
+          <input type="hidden" id="editWordId">
+
+          <div class="flex space-x-3 text-xs font-semibold">
+            <label class="flex-1 flex items-center justify-center space-x-1.5 p-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+              <input type="radio" name="wordType" value="word" checked class="hidden">
+              <span>英単語 (Word)</span>
+            </label>
+            <label class="flex-1 flex items-center justify-center space-x-1.5 p-2 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+              <input type="radio" name="wordType" value="idiom" class="hidden">
+              <span>英熟語 (Idiom)</span>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">英単語 / 熟語</label>
+            <input type="text" id="inputEnglish" required placeholder="例: resilient" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500">
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">日本語の意味</label>
+            <input type="text" id="inputMeaning" required placeholder="例: 回復力のある、立ち直りが早い" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500">
+          </div>
+
+          <button type="button" onclick="triggerAIPrediction()" id="btnAiPredict" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-xs shadow-sm hover:opacity-90 transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+            <span>✨ Gemini AIで自動予測補完</span>
+          </button>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">英文例 (任意)</label>
+            <textarea id="inputExample" rows="2" placeholder="例: She is remarkably resilient under pressure." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">例文の和訳 (任意)</label>
+            <input type="text" id="inputExampleJa" placeholder="例: 彼女はプレッシャーの中でも驚くほど立ち直りが早い。" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500">
+          </div>
+
+          <div class="pt-2 flex space-x-2">
+            <button type="button" onclick="closeWordModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">キャンセル</button>
+            <button type="submit" class="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-500/20">保存する</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 2: ACCOUNT SWITCHER -->
+    <div id="profileModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">アカウント切り替え</h3>
+          <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div id="accountList" class="space-y-2 max-h-40 overflow-y-auto pr-1 no-scrollbar">
+          <!-- Accounts list -->
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+          <span class="text-[11px] font-bold text-slate-400 block">新しいアカウント作成</span>
+          <input type="text" id="newAccountName" placeholder="アカウント名" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs border border-slate-200 dark:border-slate-700 focus:outline-none">
+          
+          <div class="space-y-2 pt-1">
+            <label class="flex items-center space-x-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
+              <input type="checkbox" id="chkEnablePassword" onchange="togglePasswordInputVisibility()" class="rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+              <span class="font-medium">パスワードを設定する</span>
+            </label>
+            <input type="password" id="newAccountPassword" placeholder="パスワードを入力" class="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs border border-slate-200 dark:border-slate-700 focus:outline-none hidden">
+          </div>
+
+          <button onclick="createNewAccount()" class="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-xs transition">アカウント追加</button>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+          <button onclick="openConfirmResetModal()" class="w-full py-2 px-3 rounded-xl border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-bold transition flex items-center justify-center space-x-1.5">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span>現在のデータを初期化</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: GEMINI API KEY CONFIGURATION -->
+    <div id="apiKeyModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+            <i data-lucide="key" class="w-4 h-4 text-brand-500"></i>
+            <span>Gemini APIキー設定</span>
+          </h3>
+          <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-600">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          公開サイトでAI予測補完を使用するには、無料の API キーを入力してください。（ブラウザ内のみに保存されます）
+        </p>
+
+        <input type="password" id="userApiKeyInput" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500 font-mono">
+
+        <div class="flex space-x-2">
+          <button onclick="closeApiKeyModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">キャンセル</button>
+          <button onclick="saveUserApiKey()" class="flex-1 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-xs">保存する</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: PASSWORD PROMPT -->
+    <div id="passwordAuthModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 text-center">
+        <div class="w-10 h-10 rounded-2xl bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center mx-auto">
+          <i data-lucide="lock" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">パスワード認証</h3>
+          <p class="text-xs text-slate-400 mt-1">このアカウントは保護されています。</p>
+        </div>
+        
+        <input type="password" id="authPasswordInput" placeholder="パスワード" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:border-brand-500 text-center">
+
+        <div class="flex space-x-2">
+          <button onclick="closePasswordAuthModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">キャンセル</button>
+          <button onclick="submitAccountAuthPassword()" class="flex-1 py-2.5 rounded-xl bg-brand-600 text-white font-bold text-xs">解除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: CONFIRM DATA RESET -->
+    <div id="confirmResetModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-3xl p-5 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 text-center">
+        <div class="w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">本当に初期化しますか？</h3>
+          <p class="text-xs text-slate-400 mt-1">すべての単語帳および学習タイマーの記録が完全に削除されます。</p>
+        </div>
+
+        <div id="resetPasswordVerifyContainer" class="hidden space-y-1 text-left">
+          <label class="block text-[10px] font-bold text-slate-400">認証用パスワード</label>
+          <input type="password" id="resetVerifyPasswordInput" placeholder="アカウントのパスワード" class="w-full px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none">
+        </div>
+
+        <div class="flex space-x-2 pt-1">
+          <button onclick="closeConfirmResetModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold text-xs">キャンセル</button>
+          <button onclick="executeAccountDataReset()" class="flex-1 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-md shadow-rose-600/20">初期化実行</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-slate-900/90 text-white text-xs font-semibold shadow-lg backdrop-blur-md flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none translate-y-[-10px]">
+      <i data-lucide="info" id="toastIcon" class="w-4 h-4 text-brand-400"></i>
+      <span id="toastMsg">通知メッセージ</span>
+    </div>
+
+  </div>
+
+  <script>
+    // --- STORAGE KEYS & GLOBAL STATE ---
+    const STORAGE_KEY_ACCOUNTS = 'vocab_app_accounts_v4';
+    const STORAGE_KEY_CURRENT_ACCOUNT = 'vocab_app_current_acc_v4';
+    const STORAGE_KEY_API_KEY = 'vocab_app_user_gemini_key';
+
+    let accounts = {}; 
+    let currentAccountId = 'default';
+    let pendingSwitchAccountId = null;
+    
+    // Timer state
+    let timerDuration = 25 * 60;
+    let timerRemaining = 25 * 60;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    // Calendar state
+    let calendarCurrentDate = new Date();
+
+    // Quiz state
+    let currentQuizIndex = 0;
+    let quizList = [];
+    let isCardFlipped = false;
+
+    // Word List Filter state
+    let currentListTypeFilter = 'all';
+
+    // Local Dictionary fallback database
+    const localDict = {
+      "resilient": { meaning: "回復力のある、立ち直りが早い", sentence: "She is remarkably resilient under pressure.", translation: "彼女はプレッシャーの中でも驚くほど立ち直りが早い。" },
+      "ephemeral": { meaning: "儚い、つかの間の", sentence: "Fame in the digital age can be ephemeral.", translation: "デジタル時代の名声は儚いものになり得る。" },
+      "meticulous": { meaning: "細部まで行き届いた、非常に慎重な", sentence: "He kept meticulous records of the study.", translation: "彼は研究の細かな記録を慎重に残した。" },
+      "pragmatic": { meaning: "実用的な、実践的な", sentence: "We need a pragmatic approach to solve this problem.", translation: "この問題を解決するには実践的なアプローチが必要だ。" },
+      "give up": { meaning: "諦める、やめる", sentence: "Don't give up on your dreams.", translation: "夢を諦めないでください。" }
+    };
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAccountsFromStorage();
+      setupTheme();
+      renderCurrentAccountUI();
+      lucide.createIcons();
+    });
+
+    function setupTheme() {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      }
+    }
+
+    // --- ACCOUNTS PERSISTENCE ---
+    function loadAccountsFromStorage() {
+      const rawAccounts = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
+      const savedCurrent = localStorage.getItem(STORAGE_KEY_CURRENT_ACCOUNT);
+
+      if (rawAccounts) {
+        accounts = JSON.parse(rawAccounts);
+      } else {
+        accounts = {
+          'default': {
+            name: 'メインユーザー',
+            password: null,
+            words: [], 
+            studyLogs: {} 
+          }
+        };
+        saveAccountsToStorage();
+      }
+
+      if (savedCurrent && accounts[savedCurrent]) {
+        currentAccountId = savedCurrent;
+      } else {
+        currentAccountId = Object.keys(accounts)[0] || 'default';
+      }
+    }
+
+    function saveAccountsToStorage() {
+      localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(accounts));
+      localStorage.setItem(STORAGE_KEY_CURRENT_ACCOUNT, currentAccountId);
+    }
+
+    function getCurrentAccountData() {
+      return accounts[currentAccountId];
+    }
+
+    function renderCurrentAccountUI() {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      document.getElementById('currentAccountLabel').innerText = acc.name;
+      document.getElementById('welcomeGreeting').innerText = `おかえりなさい、${acc.name}さん！`;
+
+      const indicator = document.getElementById('accountLockIndicator');
+      if (acc.password) {
+        indicator.className = "w-2 h-2 rounded-full bg-amber-500";
+      } else {
+        indicator.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+      }
+
+      updateHomeStats();
+      renderWordList();
+      renderCalendar();
+      startQuiz();
+    }
+
+    // --- NAVIGATION LOGIC ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(view => view.classList.add('hidden'));
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-brand-600', 'dark:text-brand-400');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('text-brand-600', 'dark:text-brand-400');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      if (tabId === 'calendar') renderCalendar();
+      if (tabId === 'words') renderWordList();
+      if (tabId === 'home') updateHomeStats();
+      
+      lucide.createIcons();
+    }
+
+    function setStudySubMode(mode) {
+      const btnQuiz = document.getElementById('btnSubQuiz');
+      const btnTimer = document.getElementById('btnSubTimer');
+      const subQuiz = document.getElementById('subview-quiz');
+      const subTimer = document.getElementById('subview-timer');
+
+      if (mode === 'quiz') {
+        subQuiz.classList.remove('hidden');
+        subTimer.classList.add('hidden');
+        btnQuiz.className = "flex-1 py-2 text-center rounded-xl bg-white dark:bg-slate-900 shadow-sm transition";
+        btnTimer.className = "flex-1 py-2 text-center rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition";
+      } else {
+        subQuiz.classList.add('hidden');
+        subTimer.classList.remove('hidden');
+        btnTimer.className = "flex-1 py-2 text-center rounded-xl bg-white dark:bg-slate-900 shadow-sm transition";
+        btnQuiz.className = "flex-1 py-2 text-center rounded-xl text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition";
+      }
+      lucide.createIcons();
+    }
+
+    // --- HOMEPAGE DASHBOARD STATS ---
+    function updateHomeStats() {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      const words = acc.words || [];
+      document.getElementById('homeStatTotal').innerText = words.length;
+
+      const needsReview = words.filter(w => w.status === 'incorrect' || w.status === 'unsure' || (w.errorCount || 0) > 0).length;
+      document.getElementById('homeStatReview').innerText = needsReview;
+
+      const mastered = words.filter(w => w.status === 'correct').length;
+      document.getElementById('homeStatMastered').innerText = mastered;
+
+      const priorityList = [...words]
+        .filter(w => w.status !== 'correct')
+        .sort((a, b) => (b.errorCount || 0) - (a.errorCount || 0))
+        .slice(0, 3);
+
+      const priorityContainer = document.getElementById('homePriorityList');
+      if (priorityList.length === 0) {
+        priorityContainer.innerHTML = `
+          <div class="glass-card p-4 rounded-2xl text-center text-xs text-slate-400">
+            要確認ターゲットの単語はありません。素晴らしい調子です！
+          </div>`;
+      } else {
+        priorityContainer.innerHTML = priorityList.map(item => `
+          <div class="glass-card p-3 rounded-2xl flex justify-between items-center">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-xs text-slate-800 dark:text-slate-100">${escapeHtml(item.english)}</span>
+                ${getStatusBadgeHtml(item.status)}
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(item.meaning)}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-amber-500 font-bold bg-amber-500/10 px-2 py-1 rounded-full">ミス: ${item.errorCount || 0}回</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function getStatusBadgeHtml(status) {
+      if (status === 'correct') {
+        return `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500">🟢 正解</span>`;
+      } else if (status === 'unsure') {
+        return `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500">🟡 微妙</span>`;
+      } else {
+        return `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-500">🔴 不正解</span>`;
+      }
+    }
+
+    // --- GEMINI AI & API KEY MANAGERS ---
+    function openApiKeyModal() {
+      const savedKey = localStorage.getItem(STORAGE_KEY_API_KEY) || '';
+      document.getElementById('userApiKeyInput').value = savedKey;
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.add('hidden');
+    }
+
+    function saveUserApiKey() {
+      const keyVal = document.getElementById('userApiKeyInput').value.trim();
+      if (keyVal) {
+        localStorage.setItem(STORAGE_KEY_API_KEY, keyVal);
+        showToast("APIキーを保存しました！", "check-circle");
+      } else {
+        localStorage.removeItem(STORAGE_KEY_API_KEY);
+        showToast("APIキーを消去しました", "info");
+      }
+      closeApiKeyModal();
+    }
+
+    async function triggerAIPrediction() {
+      const englishInput = document.getElementById('inputEnglish').value.trim();
+      const meaningInput = document.getElementById('inputMeaning').value.trim();
+
+      if (!englishInput && !meaningInput) {
+        showToast("英単語または日本語の意味を入力してください。", "alert-circle");
+        return;
+      }
+
+      const apiKey = localStorage.getItem(STORAGE_KEY_API_KEY);
+      
+      const btn = document.getElementById('btnAiPredict');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>AI予測生成中...</span>`;
+      lucide.createIcons();
+
+      if (apiKey) {
+        try {
+          const userPrompt = `You are a dictionary assistant. Given English: "${englishInput}" or Japanese: "${meaningInput}".
+Return strict JSON format matching:
+{
+  "english": "English word or idiom",
+  "meaning": "Natural Japanese translation",
+  "example": "Natural English example sentence",
+  "exampleJa": "Japanese translation of example sentence"
+}`;
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: userPrompt }] }],
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          });
+
+          const result = await response.json();
+          const candidateText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (candidateText) {
+            const parsed = JSON.parse(candidateText);
+            if (parsed.english) document.getElementById('inputEnglish').value = parsed.english;
+            if (parsed.meaning) document.getElementById('inputMeaning').value = parsed.meaning;
+            if (parsed.example) document.getElementById('inputExample').value = parsed.example;
+            if (parsed.exampleJa) document.getElementById('inputExampleJa').value = parsed.exampleJa;
+            showToast("✨ Gemini AI補完が完了しました！", "sparkles");
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            lucide.createIcons();
+            return;
+          }
+        } catch (err) {
+          console.warn("API Call Failed, fallback to local search", err);
+        }
+      }
+
+      // Local Dictionary Fallback
+      const key = englishInput.toLowerCase() || Object.keys(localDict).find(k => localDict[k].meaning.includes(meaningInput));
+      const found = localDict[key];
+
+      if (found) {
+        if (!englishInput) document.getElementById('inputEnglish').value = key;
+        document.getElementById('inputMeaning').value = found.meaning;
+        document.getElementById('inputExample').value = found.sentence;
+        document.getElementById('inputExampleJa').value = found.translation;
+        showToast("ローカル辞書から自動補完しました", "check-circle");
+      } else {
+        if (englishInput && !meaningInput) {
+          document.getElementById('inputMeaning').value = "〜を意味する表現";
+          document.getElementById('inputExample').value = `This is a sample sentence with ${englishInput}.`;
+          document.getElementById('inputExampleJa').value = `${englishInput}のサンプル例文です。`;
+        }
+        showToast("基本テキストを補完しました（🔑APIキー設定でGemini有効化）", "info");
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      lucide.createIcons();
+    }
+
+    // --- WORD LIST & FILTERING ---
+    function renderWordList() {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      const searchTerm = document.getElementById('wordSearchInput')?.value.toLowerCase().trim() || '';
+      const statusFilter = document.getElementById('listStatusFilter')?.value || 'all';
+      const sortType = document.getElementById('listSortSelect')?.value || 'newest';
+
+      let filtered = (acc.words || []).filter(item => {
+        const matchesType = (currentListTypeFilter === 'all') || (item.type === currentListTypeFilter);
+        const matchesSearch = item.english.toLowerCase().includes(searchTerm) || item.meaning.toLowerCase().includes(searchTerm);
+        
+        let matchesStatus = true;
+        if (statusFilter === 'correct') matchesStatus = item.status === 'correct';
+        if (statusFilter === 'unsure') matchesStatus = item.status === 'unsure';
+        if (statusFilter === 'incorrect') matchesStatus = item.status === 'incorrect' || (!item.status && (item.errorCount || 0) > 0);
+
+        return matchesType && matchesSearch && matchesStatus;
+      });
+
+      if (sortType === 'newest') {
+        filtered.sort((a, b) => b.createdAt - a.createdAt);
+      } else if (sortType === 'errors') {
+        filtered.sort((a, b) => (b.errorCount || 0) - (a.errorCount || 0));
+      } else if (sortType === 'alphabet') {
+        filtered.sort((a, b) => a.english.localeCompare(b.english));
+      }
+
+      const listContainer = document.getElementById('wordList');
+      if (!listContainer) return;
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `
+          <div class="glass-card p-8 rounded-3xl text-center space-y-2">
+            <i data-lucide="book-open" class="w-8 h-8 text-slate-300 mx-auto"></i>
+            <p class="text-xs text-slate-400">該当する単語・熟語が見つかりません。</p>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      listContainer.innerHTML = filtered.map(item => `
+        <div class="glass-card p-3.5 rounded-2xl flex justify-between items-start space-x-3 hover:border-slate-300 dark:hover:border-slate-700 transition">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-sm text-slate-900 dark:text-white truncate">${escapeHtml(item.english)}</span>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${item.type === 'word' ? 'bg-indigo-500/10 text-indigo-500' : 'bg-purple-500/10 text-purple-500'} uppercase">${item.type}</span>
+              ${getStatusBadgeHtml(item.status)}
+            </div>
+            <p class="text-xs text-slate-600 dark:text-slate-300 font-medium mt-0.5">${escapeHtml(item.meaning)}</p>
+            ${item.example ? `<p class="text-[11px] text-slate-400 mt-1 italic border-l-2 border-slate-200 dark:border-slate-700 pl-2">"${escapeHtml(item.example)}"</p>` : ''}
+          </div>
+          <div class="flex items-center space-x-1 pt-0.5">
+            <span class="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full mr-1">ミス ${item.errorCount || 0}</span>
+            <button onclick="editWord('${item.id}')" class="p-1.5 text-slate-400 hover:text-brand-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="deleteWord('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function setListTypeFilter(type) {
+      currentListTypeFilter = type;
+      ['All', 'Word', 'Idiom'].forEach(t => {
+        const btn = document.getElementById(`filterBtn${t}`);
+        if (t.toLowerCase() === type) {
+          btn.className = "px-2 py-1 rounded-lg bg-brand-600 text-white font-semibold transition";
+        } else {
+          btn.className = "px-2 py-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 transition";
+        }
+      });
+      renderWordList();
+    }
+
+    function openWordModal(editId = null) {
+      const modal = document.getElementById('wordModal');
+      const form = document.getElementById('wordForm');
+      form.reset();
+
+      if (editId) {
+        const acc = getCurrentAccountData();
+        const word = acc.words.find(w => w.id === editId);
+        if (word) {
+          document.getElementById('modalTitle').innerText = "単語・熟語を編集";
+          document.getElementById('editWordId').value = word.id;
+          document.getElementById('inputEnglish').value = word.english;
+          document.getElementById('inputMeaning').value = word.meaning;
+          document.getElementById('inputExample').value = word.example || '';
+          document.getElementById('inputExampleJa').value = word.exampleJa || '';
+          form.querySelector(`input[name="wordType"][value="${word.type}"]`).checked = true;
+        }
+      } else {
+        document.getElementById('modalTitle').innerText = "新しい単語・熟語を追加";
+        document.getElementById('editWordId').value = '';
+      }
+
+      modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeWordModal() {
+      document.getElementById('wordModal').classList.add('hidden');
+    }
+
+    function handleSaveWord(e) {
+      e.preventDefault();
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      const editId = document.getElementById('editWordId').value;
+      const english = document.getElementById('inputEnglish').value.trim();
+      const meaning = document.getElementById('inputMeaning').value.trim();
+      const example = document.getElementById('inputExample').value.trim();
+      const exampleJa = document.getElementById('inputExampleJa').value.trim();
+      const type = document.querySelector('input[name="wordType"]:checked').value;
+
+      if (editId) {
+        const index = acc.words.findIndex(w => w.id === editId);
+        if (index !== -1) {
+          acc.words[index] = {
+            ...acc.words[index],
+            english,
+            meaning,
+            example,
+            exampleJa,
+            type,
+            updatedAt: Date.now()
+          };
+          showToast("更新しました", "check");
+        }
+      } else {
+        const newWord = {
+          id: 'word_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          english,
+          meaning,
+          example,
+          exampleJa,
+          type,
+          status: 'incorrect',
+          errorCount: 0,
+          createdAt: Date.now(),
+          lastReviewed: null
+        };
+        acc.words.unshift(newWord);
+        showToast("追加しました！", "check-circle");
+      }
+
+      saveAccountsToStorage();
+      closeWordModal();
+      renderWordList();
+      updateHomeStats();
+    }
+
+    function editWord(id) {
+      openWordModal(id);
+    }
+
+    function deleteWord(id) {
+      if (!confirm("この単語を削除してもよろしいですか？")) return;
+      const acc = getCurrentAccountData();
+      acc.words = acc.words.filter(w => w.id !== id);
+      saveAccountsToStorage();
+      renderWordList();
+      updateHomeStats();
+      showToast("削除しました", "trash-2");
+    }
+
+    // --- SHUFFLE QUIZ ENGINE ---
+    function startQuiz() {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      const statusFilter = document.getElementById('quizStatusFilter')?.value || 'all';
+      const typeFilter = document.getElementById('quizTypeFilter')?.value || 'all';
+      const questionCount = parseInt(document.getElementById('quizCountFilter')?.value || '10', 10);
+
+      let filtered = (acc.words || []).filter(item => {
+        const matchType = (typeFilter === 'all') || (item.type === typeFilter);
+        
+        let matchStatus = true;
+        if (statusFilter === 'incorrect') matchStatus = item.status === 'incorrect';
+        else if (statusFilter === 'unsure') matchStatus = item.status === 'unsure';
+        else if (statusFilter === 'correct') matchStatus = item.status === 'correct';
+        else if (statusFilter === 'needs_review') matchStatus = item.status === 'incorrect' || item.status === 'unsure';
+
+        return matchType && matchStatus;
+      });
+
+      // Fisher-Yates Shuffle
+      for (let i = filtered.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+      }
+
+      quizList = filtered.slice(0, questionCount);
+      currentQuizIndex = 0;
+      isCardFlipped = false;
+      renderQuizCard();
+    }
+
+    function renderQuizCard() {
+      const container = document.getElementById('quizContainer');
+      if (!container) return;
+
+      if (quizList.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card p-8 rounded-3xl text-center space-y-3">
+            <div class="w-12 h-12 rounded-2xl bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto">
+              <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            </div>
+            <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100">出題条件に合う単語がありません</h3>
+            <p class="text-xs text-slate-400">「単語管理」から追加するか、出題フィルターを変更してください。</p>
+          </div>`;
+        lucide.createIcons();
+        return;
+      }
+
+      const item = quizList[currentQuizIndex];
+
+      container.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex justify-between items-center text-xs text-slate-400 font-semibold px-1">
+            <span>問題 ${currentQuizIndex + 1} / ${quizList.length}</span>
+            <div class="flex items-center space-x-2">
+              ${getStatusBadgeHtml(item.status)}
+              <span class="text-amber-500">ミス: ${item.errorCount || 0}回</span>
+            </div>
+          </div>
+
+          <div onclick="flipCard()" class="perspective cursor-pointer">
+            <div id="flashcardInner" class="transform-style-3d transition-transform duration-500 glass-card rounded-3xl min-h-[220px] p-6 flex flex-col justify-between text-center relative border-brand-500/30">
+              
+              <div class="backface-hidden my-auto space-y-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-brand-600 dark:text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full inline-block">${item.type}</span>
+                <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">${escapeHtml(item.english)}</h2>
+                <p class="text-xs text-slate-400 font-medium pt-2">タップして意味を確認</p>
+              </div>
+
+              <div class="backface-hidden rotate-y-180 absolute inset-0 p-6 flex flex-col justify-between my-auto bg-white/95 dark:bg-slate-900/95 rounded-3xl">
+                <div class="my-auto space-y-2">
+                  <h3 class="text-lg font-bold text-brand-600 dark:text-brand-400">${escapeHtml(item.meaning)}</h3>
+                  ${item.example ? `
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 text-left">
+                      <p class="text-xs text-slate-700 dark:text-slate-300 font-medium">"${escapeHtml(item.example)}"</p>
+                      ${item.exampleJa ? `<p class="text-[11px] text-slate-400 mt-0.5">${escapeHtml(item.exampleJa)}</p>` : ''}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2">
+            <button onclick="gradeQuiz('incorrect')" class="py-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold text-xs transition active:scale-95 border border-rose-500/20">
+              <i data-lucide="x-circle" class="w-4 h-4 inline mr-1"></i>不正解 (🔴)
+            </button>
+            <button onclick="gradeQuiz('unsure')" class="py-3 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs transition active:scale-95 border border-amber-500/20">
+              <i data-lucide="help-circle" class="w-4 h-4 inline mr-1"></i>微妙 (🟡)
+            </button>
+            <button onclick="gradeQuiz('correct')" class="py-3 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition active:scale-95 border border-emerald-500/20">
+              <i data-lucide="check-circle-2" class="w-4 h-4 inline mr-1"></i>正解 (🟢)
+            </button>
+          </div>
+        </div>
+      `;
+
+      lucide.createIcons();
+    }
+
+    function flipCard() {
+      const inner = document.getElementById('flashcardInner');
+      if (!inner) return;
+      isCardFlipped = !isCardFlipped;
+      if (isCardFlipped) {
+        inner.classList.add('rotate-y-180');
+      } else {
+        inner.classList.remove('rotate-y-180');
+      }
+    }
+
+    function gradeQuiz(newStatus) {
+      const acc = getCurrentAccountData();
+      if (!acc || quizList.length === 0) return;
+
+      const item = quizList[currentQuizIndex];
+      const origWord = acc.words.find(w => w.id === item.id);
+
+      if (origWord) {
+        origWord.status = newStatus;
+        if (newStatus === 'incorrect' || newStatus === 'unsure') {
+          origWord.errorCount = (origWord.errorCount || 0) + 1;
+        }
+        origWord.lastReviewed = Date.now();
+        saveAccountsToStorage();
+      }
+
+      if (currentQuizIndex < quizList.length - 1) {
+        currentQuizIndex++;
+        isCardFlipped = false;
+        renderQuizCard();
+      } else {
+        showToast("シャッフルクイズが終了しました！", "party-popper");
+        startQuiz(); 
+      }
+      updateHomeStats();
+    }
+
+    // --- TIMER SYSTEM ---
+    function setTimerPreset(minutes) {
+      if (isTimerRunning) pauseTimer();
+      timerDuration = minutes * 60;
+      timerRemaining = timerDuration;
+      
+      document.querySelectorAll('.timer-preset-btn').forEach(btn => {
+        if (btn.innerText.includes(`${minutes}分`)) {
+          btn.className = "timer-preset-btn active px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-600 text-white transition";
+        } else {
+          btn.className = "timer-preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white transition";
+        }
+      });
+
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timerRemaining / 60);
+      const seconds = timerRemaining % 60;
+      document.getElementById('timerDisplay').innerText = 
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+      const circle = document.getElementById('timerProgressCircle');
+      const circumference = 2 * Math.PI * 42;
+      const offset = circumference - (timerRemaining / timerDuration) * circumference;
+      circle.style.strokeDashoffset = offset;
+    }
+
+    function toggleTimer() {
+      if (isTimerRunning) pauseTimer();
+      else startTimer();
+    }
+
+    function startTimer() {
+      isTimerRunning = true;
+      document.getElementById('btnStartTimerText').innerText = "一時停止";
+      document.getElementById('timerStateLabel').innerText = "Focusing...";
+
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          updateTimerDisplay();
+        } else {
+          completeTimerSession();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      isTimerRunning = false;
+      clearInterval(timerInterval);
+      document.getElementById('btnStartTimerText').innerText = "再開";
+      document.getElementById('timerStateLabel').innerText = "Paused";
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      timerRemaining = timerDuration;
+      document.getElementById('btnStartTimerText').innerText = "スタート";
+      document.getElementById('timerStateLabel').innerText = "Ready";
+      updateTimerDisplay();
+    }
+
+    function completeTimerSession() {
+      pauseTimer();
+      const minutesLearned = Math.round(timerDuration / 60);
+      logStudyTime(minutesLearned);
+
+      showToast(`${minutesLearned}分間の学習がログに記録されました！`, "award");
+      resetTimer();
+    }
+
+    function logStudyTime(minutes) {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      const today = new Date().toISOString().split('T')[0];
+      acc.studyLogs = acc.studyLogs || {};
+      acc.studyLogs[today] = (acc.studyLogs[today] || 0) + minutes;
+
+      saveAccountsToStorage();
+      updateHomeStats();
+      renderCalendar();
+    }
+
+    // --- CALENDAR LOGIC ---
+    function changeMonth(delta) {
+      calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const year = calendarCurrentDate.getFullYear();
+      const month = calendarCurrentDate.getMonth();
+      const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+      document.getElementById('calendarMonthTitle').innerText = `${year}年 ${month + 1}月`;
+
+      const acc = getCurrentAccountData();
+      const studyLogs = acc ? (acc.studyLogs || {}) : {};
+
+      let totalMinutes = 0;
+      let activeDaysCount = 0;
+
+      Object.keys(studyLogs).forEach(dateStr => {
+        if (dateStr.startsWith(monthPrefix) && studyLogs[dateStr] > 0) {
+          totalMinutes += studyLogs[dateStr];
+          activeDaysCount++;
+        }
+      });
+
+      document.getElementById('calendarMonthlyTotal').innerText = `${totalMinutes} 分`;
+      document.getElementById('calendarActiveDays').innerText = `${activeDaysCount} 日`;
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const grid = document.getElementById('calendarDaysGrid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < firstDayIndex; i++) {
+        grid.appendChild(document.createElement('div'));
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      for (let day = 1; day <= totalDaysInMonth; day++) {
+        const dayStr = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+        const minutes = studyLogs[dayStr] || 0;
+
+        const cell = document.createElement('button');
+        cell.onclick = () => selectCalendarDay(dayStr, minutes);
+        cell.className = "h-10 rounded-xl flex flex-col items-center justify-center relative transition hover:bg-slate-100 dark:hover:bg-slate-800";
+
+        if (dayStr === todayStr) {
+          cell.classList.add('border', 'border-brand-500', 'font-bold');
+        }
+
+        let bgClass = '';
+        if (minutes > 0) {
+          if (minutes >= 30) bgClass = 'bg-brand-600 text-white font-bold';
+          else bgClass = 'bg-brand-500/20 text-brand-600 dark:text-brand-400 font-bold';
+        }
+
+        cell.innerHTML = `
+          <span class="text-xs ${bgClass ? '' : 'text-slate-700 dark:text-slate-300'}">${day}</span>
+          ${minutes > 0 ? `<span class="w-1.5 h-1.5 rounded-full ${bgClass.includes('bg-brand-600') ? 'bg-white' : 'bg-brand-500'} mt-0.5"></span>` : ''}
+        `;
+
+        if (bgClass) {
+          const innerSpan = cell.querySelector('span');
+          innerSpan.className += ` w-6 h-6 rounded-lg flex items-center justify-center ${bgClass}`;
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+
+    function selectCalendarDay(dateStr, minutes) {
+      const detail = document.getElementById('calendarDayDetail');
+      document.getElementById('selectedDayTitle').innerText = `${dateStr} の学習記録`;
+      document.getElementById('selectedDayContent').innerText = minutes > 0 
+        ? `合計 ${minutes} 分間の集中学習を達成しました。`
+        : `この日の学習時間ログはありません。`;
+      detail.classList.remove('hidden');
+    }
+
+    // --- MULTI-ACCOUNT & AUTH CONTROL ---
+    function openProfileModal() {
+      renderAccountListModal();
+      document.getElementById('profileModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function togglePasswordInputVisibility() {
+      const chk = document.getElementById('chkEnablePassword');
+      const passInput = document.getElementById('newAccountPassword');
+      if (chk.checked) {
+        passInput.classList.remove('hidden');
+        passInput.required = true;
+      } else {
+        passInput.classList.add('hidden');
+        passInput.required = false;
+        passInput.value = '';
+      }
+    }
+
+    function renderAccountListModal() {
+      const container = document.getElementById('accountList');
+      container.innerHTML = Object.keys(accounts).map(accId => {
+        const isCurrent = accId === currentAccountId;
+        const hasPassword = !!accounts[accId].password;
+
+        return `
+          <div onclick="initiateSwitchAccount('${accId}')" class="p-2.5 rounded-2xl flex items-center justify-between cursor-pointer border transition ${isCurrent ? 'bg-brand-500/10 border-brand-500/50' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}">
+            <div class="flex items-center space-x-2">
+              <div class="w-2 h-2 rounded-full ${isCurrent ? 'bg-brand-500' : 'bg-slate-300'}"></div>
+              <span class="text-xs font-bold ${isCurrent ? 'text-brand-600 dark:text-brand-400' : 'text-slate-700 dark:text-slate-300'}">${escapeHtml(accounts[accId].name)}</span>
+              ${hasPassword ? `<i data-lucide="lock" class="w-3 h-3 text-amber-500 inline"></i>` : ''}
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium">${(accounts[accId].words || []).length} 単語</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function initiateSwitchAccount(accId) {
+      if (accId === currentAccountId) {
+        closeProfileModal();
+        return;
+      }
+
+      const targetAcc = accounts[accId];
+      if (targetAcc && targetAcc.password) {
+        pendingSwitchAccountId = accId;
+        document.getElementById('authPasswordInput').value = '';
+        document.getElementById('passwordAuthModal').classList.remove('hidden');
+      } else {
+        performAccountSwitch(accId);
+      }
+    }
+
+    function closePasswordAuthModal() {
+      pendingSwitchAccountId = null;
+      document.getElementById('passwordAuthModal').classList.add('hidden');
+    }
+
+    function submitAccountAuthPassword() {
+      if (!pendingSwitchAccountId) return;
+
+      const inputPass = document.getElementById('authPasswordInput').value;
+      const targetAcc = accounts[pendingSwitchAccountId];
+
+      if (targetAcc && targetAcc.password === inputPass) {
+        performAccountSwitch(pendingSwitchAccountId);
+        closePasswordAuthModal();
+      } else {
+        showToast("パスワードが正しくありません", "alert-circle");
+      }
+    }
+
+    function performAccountSwitch(accId) {
+      currentAccountId = accId;
+      saveAccountsToStorage();
+      renderCurrentAccountUI();
+      closeProfileModal();
+      showToast(`「${accounts[accId].name}」に切り替えました`, "user-check");
+    }
+
+    function createNewAccount() {
+      const nameInput = document.getElementById('newAccountName');
+      const chkPass = document.getElementById('chkEnablePassword');
+      const passInput = document.getElementById('newAccountPassword');
+
+      const name = nameInput.value.trim();
+      if (!name) {
+        showToast("アカウント名を入力してください", "alert-circle");
+        return;
+      }
+
+      let passwordValue = null;
+      if (chkPass.checked) {
+        passwordValue = passInput.value;
+        if (!passwordValue) {
+          showToast("パスワードを入力してください", "alert-circle");
+          return;
+        }
+      }
+
+      const newId = 'acc_' + Date.now();
+      accounts[newId] = {
+        name: name,
+        password: passwordValue,
+        words: [], 
+        studyLogs: {},
+        created: Date.now()
+      };
+
+      nameInput.value = '';
+      passInput.value = '';
+      chkPass.checked = false;
+      togglePasswordInputVisibility();
+
+      currentAccountId = newId;
+      saveAccountsToStorage();
+      renderCurrentAccountUI();
+      closeProfileModal();
+      showToast(`「${name}」を作成しました`, "user-plus");
+    }
+
+    // --- RESET CONFIRMATION ---
+    function openConfirmResetModal() {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      const verifyContainer = document.getElementById('resetPasswordVerifyContainer');
+      const verifyInput = document.getElementById('resetVerifyPasswordInput');
+      verifyInput.value = '';
+
+      if (acc.password) {
+        verifyContainer.classList.remove('hidden');
+      } else {
+        verifyContainer.classList.add('hidden');
+      }
+
+      document.getElementById('confirmResetModal').classList.remove('hidden');
+    }
+
+    function closeConfirmResetModal() {
+      document.getElementById('confirmResetModal').classList.add('hidden');
+    }
+
+    function executeAccountDataReset() {
+      const acc = getCurrentAccountData();
+      if (!acc) return;
+
+      if (acc.password) {
+        const verifyInput = document.getElementById('resetVerifyPasswordInput').value;
+        if (verifyInput !== acc.password) {
+          showToast("パスワードが正しくありません", "alert-circle");
+          return;
+        }
+      }
+
+      acc.words = [];
+      acc.studyLogs = {};
+      saveAccountsToStorage();
+
+      renderCurrentAccountUI();
+      closeConfirmResetModal();
+      closeProfileModal();
+      showToast("データを初期化しました", "trash-2");
+    }
+
+    // --- UTILITIES ---
+    function showToast(message, iconName = 'info') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = message;
+      
+      const toastIcon = document.getElementById('toastIcon');
+      toastIcon.setAttribute('data-lucide', iconName);
+      lucide.createIcons();
+
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 3000);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[match]);
+    }
+  </script>
+</body>
+</html>
